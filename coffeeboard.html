@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>coffee dashboard</title>
+    <style>
+        :root {
+            --bg-color: #282828;
+            --text-color: #ebdbb2;
+            --card-bg: #3c3836;
+            --border-color: #504945;
+            --card-gradient: linear-gradient(145deg, #504945, #7c6f64);
+            --card-texture: url('https://www.transparenttextures.com/patterns/asfalt-dark.png');
+        }
+        
+        [data-theme="light"] {
+            --bg-color: #fbf1c7;
+            --text-color: #282828;
+            --card-bg: #d5c4a1;
+            --border-color: #bdae93;
+            --card-gradient: linear-gradient(145deg, #d5c4a1, #bdae93);
+            --card-texture: url('https://www.transparenttextures.com/patterns/asfalt-light.png');
+        }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            transition: background 0.3s, color 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .toggle-theme {
+            padding: 10px 15px;
+            border: none;
+            background: var(--card-bg);
+            color: var(--text-color);
+            cursor: pointer;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        
+        .filters {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .filter, .search-bar, .sort-options {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-color);
+            border-radius: 5px;
+        }
+        
+        .coffee-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .coffee-card {
+            background: var(--card-gradient), var(--card-texture);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            width: 250px;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        
+        .coffee-card:hover {
+            border-color: var(--text-color);
+            transform: scale(1.05);
+        }
+        
+        .notes {
+            font-size: 0.9em;
+            color: var(--text-color);
+        }
+        
+        .out-of-stock {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <button class="toggle-theme" aria-label="toggle theme">🌙 dark mode</button>
+    
+    <div class="filters">
+        <input type="text" id="searchBar" class="search-bar" placeholder="Search coffee...">
+        <select id="stockFilter" class="filter">
+            <option value="all">stock level</option>
+            <option value="y" selected>in stock</option>
+            <option value="n">out of stock</option>
+        </select>
+        <select id="roastFilter" class="filter">
+            <option value="all">roast</option>
+            <option value="light">light</option>
+            <option value="medium">medium</option>
+            <option value="dark">dark</option>
+        </select>
+        <select id="typeFilter" class="filter">
+            <option value="all">type</option>
+            <option value="single origin">single origin</option>
+            <option value="blend">blend</option>
+        </select>
+        <select id="roasterFilter" class="filter">
+            <option value="all">roaster</option>
+            <option value="inglewood coffee roasters">ing</option>
+            <option value="ona coffee roasters">ona</option>
+        </select>
+        <select id="originFilter" class="filter">
+            <option value="all">origin</option>
+            <option value="ethiopia">ethiopia</option>
+            <option value="indonesia">indonesia</option>
+            <option value="honduras">honduras</option>
+            <option value="peru">peru</option>
+            <option value="png">png</option>
+            <option value="tanzania">tanzania</option>
+            <option value="brazil">brazil</option>
+            <option value="burundi">burundi</option>
+        </select>
+        <select id="decafFilter" class="filter">
+            <option value="all">decaf</option>
+            <option value="y">yes</option>
+            <option value="n">no</option>
+        </select>
+        <select id="sortOptions" class="sort-options">
+            <option value="none">sort by</option>
+            <option value="stock">stock level</option>
+            <option value="roast">roast type</option>
+            <option value="origin">origin</option>
+        </select>
+    </div>
+    
+    <div class="coffee-container" id="coffeeList"></div>
+    
+    <script>
+        const coffeeData = [
+            {
+                "name": "roosevelt blend",
+                "origin": ["brazil", "tanzania", "png"],
+                "type": "blend",
+                "roast": "medium",
+                "roast_type": ["espresso"],
+                "decaf_process": "n/a",
+                "recommended_dose (g)": "21:300",
+                "notes": ["molasses", "dark chocolate", "nougat", "dried stonefruit"],
+                "description": "the roosevelt blend is designed to be enjoyed both black or with milk and is a true standout on our coffee menu.",
+                "amount_in_stock": 535,
+                "roaster": "inglewood coffee roasters",
+                "stock_received_date": "2024-11-20"
+            },
+            {
+                "name": "sunset blvd blend",
+                "origin": ["honduras", "peru", "png"],
+                "type": "blend",
+                "roast": "medium",
+                "roast_type": ["espresso"],
+                "decaf_process": "n/a",
+                "recommended_dose (g)": "20:40",
+                "notes": ["malt", "milk chocolate", "toffee", "caramel"],
+                "description": "this blend has been designed for your traditional espresso drinker, with a rich body that is full flavoured in all milk-based beverages. strength 10/10.",
+                "amount_in_stock": 75,
+                "roaster": "inglewood coffee roasters",
+                "stock_received_date": "2024-11-20"
+            },
+            {
+                "name": "downtown seasonal espresso",
+                "origin": ["png"],
+                "type": "single origin",
+                "roast": "dark",
+                "roast_type": ["espresso"],
+                "decaf_process": "n/a",
+                "recommended_dose (g)": "20:40",
+                "notes": ["chocolate", "brown sugar", "toffee"],
+                "description": "downtown is our seasonal espresso blend, perfect for milk-based coffee. it has a smooth flavor with notes of chocolate, brown sugar, and toffee.",
+                "amount_in_stock": 0,
+                "roaster": "inglewood coffee roasters",
+                "stock_received_date": "n/a"
+            },
+            {
+                "name": "bloom seasonal blend",
+                "origin": ["ethiopia", "brazil"],
+                "type": "blend",
+                "roast": "medium",
+                "roast_type": ["espresso"],
+                "decaf_process": "n/a",
+                "recommended_dose (g)": "21:42",
+                "notes": ["orange marmalade", "sticky plum", "prune", "milk chocolate waffle"],
+                "description": "bloom is our wild-child blend with a complex and jammy fruit-forward flavor profile. it started as a limited edition blend but became so popular that we brought it back permanently.",
+                "amount_in_stock": 1000,
+                "roaster": "inglewood coffee roasters",
+                "stock_received_date": "2025-01-28"
+            },
+            {
+                "name": "colombian decaf",
+                "origin": ["colombia"],
+                "type": "single origin",
+                "roast": "medium",
+                "roast_type": ["espresso"],
+                "decaf_process": "ea water process",
+                "recommended_dose (g)": "21:36",
+                "notes": ["spiced plum", "brown sugar", "cooked raisin", "dark chocolate"],
+                "description": "seasonal decaffeinated coffee. syrupy spiced plum and brown sugar notes with a smooth chocolatey finish.",
+				"amount_in_stock": 900,
+				"roaster": "inglewood coffee roasters",
+				"stock_received_date": "2025-01-28"
+			},
+			{
+				"name": "lazy daze summer blend",
+				"origin": ["el salvador", "ethiopia"],
+				"type": "blend",
+				"roast": "medium",
+				"roast_type": ["espresso","filter"],
+				"decaf_process": "n/a",
+				"recommended_dose (g)": ["21:45 (espresso)", "200:1600 (cold brew)", "200:1000 (cold brew conc.)"],
+				"notes": ["blueberry margarita", "plum cordial", "peach ice tea", "stewed fruit"],
+				"description": "a blend of el salvador and ethiopian coffees, we bring you lazy daze. the perfect accompaniment for your summer days. think cooked stone fruit and delicate tea-like florals.",
+				"amount_in_stock": 500,
+				"roaster": "inglewood coffee roasters",
+				"stock_received_date": "2024-11-20"
+			},
+			{
+				"name": "el salvador espresso",
+				"origin": ["el salvador"],
+				"type": "single origin",
+				"roast": "medium",
+				"roast_type": ["espresso", "filter"],
+				"decaf_process": "n/a",
+				"recommended_dose (g)": ["20:40 (espresso)", "19.5:300 (filter)"],
+				"notes": ["red currant", "cola", "english breakfast tea"],
+				"description": "located in an ideal climate and altitude, finca la esmeralda provides optimal conditions for growing specialty coffee. at heights between 1,300 and 1,400 metres above sea level, they cultivate a variety of beans, including anacafé 14, icatú, costa rica 95, ethiopian 41, and sampacho.",
+				"amount_in_stock": 1000,
+				"roaster": "inglewood coffee roasters",
+				"stock_received_date": "2025-01-28"
+			},
+			{
+				"name": "burundi kiryama",
+				"origin": ["burundi"],
+				"type": "single origin",
+				"roast": "medium",
+				"roast_type": ["filter"],
+				"decaf_process": "n/a",
+				"recommended_dose (g)": "not provided",
+				"notes": ["toffee", "strawberry milkshake", "green peach"],
+				"description": "burundi kiryama is a honey-processed coffee from the muyinga district. it offers a well-balanced flavor profile with notes of chocolate, dried fruit, golden raisin, and prune.",
+				"amount_in_stock": 500,
+				"roaster": "inglewood coffee roasters",
+				"stock_received_date": "2025-01-28"
+			}
+			];
+
+			function renderCoffeeList(coffeeData) {
+				const container = document.getElementById("coffeeList");
+				container.innerHTML = coffeeData.map(coffee => `
+					<div class="coffee-card" data-in-stock="${coffee.amount_in_stock > 0 ? 'y' : 'n'}" data-roast="${coffee.roast}" data-type="${coffee.type}" data-roaster="${coffee.roaster}" data-origin="${coffee.origin.join(", ")}" data-decaf="${coffee.decaf_process !== 'n/a' ? 'y' : 'n'}">
+						<h3>${coffee.name}</h3>
+						<p><strong>roaster:</strong> ${coffee.roaster}</p>
+						<p><strong>origin:</strong> ${coffee.origin.join(", ")}</p>
+						<p><strong>type:</strong> ${coffee.type}</p>
+						<p><strong>roast:</strong> ${coffee.roast}</p>
+						<p><strong>notes:</strong> ${coffee.notes.join(", ")}</p>
+						${coffee.amount_in_stock > 0 ? `<p><strong>amount in stock:</strong> ${coffee.amount_in_stock}g</p>` : '<p class="out-of-stock">Out of stock</p>'}
+						<p><strong>stock received date:</strong> ${coffee.stock_received_date}</p>
+						<p class="notes">${coffee.description}</p>
+					</div>
+				`).join("");
+			}
+
+			function filterCoffeeList() {
+				const stockFilter = document.getElementById("stockFilter").value;
+				const roastFilter = document.getElementById("roastFilter").value;
+				const typeFilter = document.getElementById("typeFilter").value;
+				const roasterFilter = document.getElementById("roasterFilter").value;
+				const originFilter = document.getElementById("originFilter").value;
+				const decafFilter = document.getElementById("decafFilter").value;
+				const searchQuery = document.getElementById("searchBar").value.toLowerCase();
+				const sortOption = document.getElementById("sortOptions").value;
+				const coffeeCards = document.querySelectorAll(".coffee-card");
+				
+				coffeeCards.forEach(card => {
+					const matchesStock = stockFilter === "all" || card.getAttribute("data-in-stock") === stockFilter;
+					const matchesRoast = roastFilter === "all" || card.getAttribute("data-roast") === roastFilter;
+					const matchesType = typeFilter === "all" || card.getAttribute("data-type") === typeFilter;
+					const matchesRoaster = roasterFilter === "all" || card.getAttribute("data-roaster") === roasterFilter;
+					const matchesOrigin = originFilter === "all" || card.getAttribute("data-origin").includes(originFilter);
+					const matchesDecaf = decafFilter === "all" || card.getAttribute("data-decaf") === decafFilter;
+					const matchesSearch = card.querySelector("h3").textContent.toLowerCase().includes(searchQuery);
+					
+					if (matchesStock && matchesRoast && matchesType && matchesRoaster && matchesOrigin && matchesDecaf && matchesSearch) {
+						card.style.display = "block";
+					} else {
+						card.style.display = "none";
+					}
+				});
+
+				if (sortOption !== "none") {
+					const sortedCards = Array.from(coffeeCards).sort((a, b) => {
+						if (sortOption === "stock") {
+							return parseInt(b.getAttribute("data-in-stock")) - parseInt(a.getAttribute("data-in-stock"));
+						} else if (sortOption === "roast") {
+							return a.getAttribute("data-roast").localeCompare(b.getAttribute("data-roast"));
+						} else if (sortOption === "origin") {
+							return a.getAttribute("data-origin").localeCompare(b.getAttribute("data-origin"));
+						}
+					});
+					sortedCards.forEach(card => document.getElementById("coffeeList").appendChild(card));
+				}
+			}
+
+			document.getElementById("stockFilter").addEventListener("change", filterCoffeeList);
+			document.getElementById("roastFilter").addEventListener("change", filterCoffeeList);
+			document.getElementById("typeFilter").addEventListener("change", filterCoffeeList);
+			document.getElementById("roasterFilter").addEventListener("change", filterCoffeeList);
+			document.getElementById("originFilter").addEventListener("change", filterCoffeeList);
+			document.getElementById("decafFilter").addEventListener("change", filterCoffeeList);
+			document.getElementById("searchBar").addEventListener("input", filterCoffeeList);
+			document.getElementById("sortOptions").addEventListener("change", filterCoffeeList);
+
+			renderCoffeeList(coffeeData);
+			filterCoffeeList();
+
+			function toggleTheme() {
+				const theme = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+				document.documentElement.setAttribute("data-theme", theme);
+				localStorage.setItem("theme", theme);
+				document.querySelector(".toggle-theme").textContent = theme === "light" ? "🌙 dark mode" : "☀️ light mode";
+			}
+
+			document.querySelector(".toggle-theme").addEventListener("click", toggleTheme);
+
+			(function loadTheme() {
+				const savedTheme = localStorage.getItem("theme") || "dark";
+				document.documentElement.setAttribute("data-theme", savedTheme);
+				document.querySelector(".toggle-theme").textContent = savedTheme === "light" ? "🌙 dark mode" : "☀️ light mode";
+			})();
+	</script>
+</body>
+</html>
